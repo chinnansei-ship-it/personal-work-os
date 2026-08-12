@@ -1,0 +1,26 @@
+name: Update Daily Reading
+on:
+  schedule:
+    - cron: "5 13 * * 1-5"
+    - cron: "5 0 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/update-reading.mjs
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Publish updated reading
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reading-data.json
+          git diff --cached --quiet || git commit -m "Update daily reading"
+          git push
