@@ -1,0 +1,12 @@
+{
+  "pharmacy": {
+    "title": "中国零售药房与商业卓越周报",
+    "meta": "每周一 08:05 自动更新",
+    "body": "<h3>自动更新已准备</h3><p>完成 GitHub 密钥设置后，下期药房简报将自动出现在这里。</p>"
+  },
+  "english": {
+    "title": "English for Work — Advanced (C1)",
+    "meta": "工作日 21:05 自动更新",
+    "body": "<h3>Automatic update is ready</h3><p>After the GitHub secret is configured, the next English practice will appear here automatically.</p>"
+  }
+}
