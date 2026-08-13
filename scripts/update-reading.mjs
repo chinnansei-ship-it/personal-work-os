@@ -20,7 +20,7 @@ const response = await fetch("https://models.github.ai/inference/chat/completion
   method: "POST",
   headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   body: JSON.stringify({
-    model: "openai/gpt-4.1-mini",
+    model: "openai/gpt-4o",
     messages: [
       { role: "system", content: "You create accurate, practical learning content for a bilingual Commercial Excellence professional. Return JSON only." },
       { role: "user", content: prompts[mode] }
