@@ -20,7 +20,7 @@ const response = await fetch("https://models.github.ai/inference/chat/completion
   method: "POST",
   headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   body: JSON.stringify({
-    model: "openai/gpt-4o",
+    model: "openai/gpt-4.1",
     messages: [
       { role: "system", content: "You create accurate, practical learning content for a bilingual Commercial Excellence professional. Return JSON only." },
       { role: "user", content: prompts[mode] }
@@ -29,17 +29,21 @@ const response = await fetch("https://models.github.ai/inference/chat/completion
     max_tokens: 2200
   })
 });
-if (!response.ok) throw new Error(`GitHub Models ${response.status}: ${await response.text()}`);
-const payload = await response.json();
-const outputText = payload.choices?.[0]?.message?.content;
-if (!outputText) throw new Error("No output text returned");
-const generated = JSON.parse(outputText.replace(/^```json\s*|\s*```$/g, ""));
-
 const path = new URL("../reading-data.json", import.meta.url);
 const data = JSON.parse(await fs.readFile(path, "utf8"));
-data[mode] = {
-  title: generated.title,
-  meta: `${date} · ${mode === "english" ? "工作日 21:05" : "每周一 08:05"} 自动更新`,
-  body: generated.body
-};
+if (response.ok) {
+  const payload = await response.json();
+  const outputText = payload.choices?.[0]?.message?.content;
+  if (!outputText) throw new Error("No output text returned");
+  const generated = JSON.parse(outputText.replace(/^```json\s*|\s*```$/g, ""));
+  data[mode] = {
+    title: generated.title,
+    meta: `${date} · ${mode === "english" ? "工作日 21:05" : "每周一 08:05"} 自动更新`,
+    body: generated.body
+  };
+} else {
+  const reason = await response.text();
+  console.warn(`GitHub Models ${response.status}: ${reason}`);
+  data[mode].meta = `${date} · 免费模型暂时不可用，已保留上一期内容`;
+}
 await fs.writeFile(path, JSON.stringify(data, null, 2) + "\n");
