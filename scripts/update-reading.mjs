@@ -11,9 +11,43 @@ const parts = Object.fromEntries(formatter.formatToParts(new Date()).map(x => [x
 const mode = Number(parts.hour) < 12 ? "pharmacy" : "english";
 const date = `${parts.year}-${parts.month}-${parts.day}`;
 
+function decodeXml(value = "") {
+  return value.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+async function fetchPharmacySources() {
+  const queries = ["中国 零售药房 医保 政策", "连锁药店 集采 处方外流", "药品 零售 渠道 数字医疗"];
+  const items = [];
+  for (const query of queries) {
+    try {
+      const url = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss`;
+      const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 Personal Work OS" } });
+      if (!response.ok) continue;
+      const xml = await response.text();
+      for (const match of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+        const item = match[1];
+        const get = tag => decodeXml(item.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`))?.[1]);
+        const source = { title: get("title"), link: get("link"), summary: get("description"), published: get("pubDate") };
+        if (source.title && source.link && !items.some(x => x.link === source.link)) items.push(source);
+        if (items.length >= 15) return items;
+      }
+    } catch (error) {
+      console.warn(`Source fetch failed for ${query}: ${error.message}`);
+    }
+  }
+  return items;
+}
+
+const pharmacySources = mode === "pharmacy" ? await fetchPharmacySources() : [];
+const sourceContext = pharmacySources.length
+  ? pharmacySources.map((x, i) => `${i + 1}. ${x.title}\nPublished: ${x.published}\nSummary: ${x.summary}\nURL: ${x.link}`).join("\n\n")
+  : "No current external source items were retrieved. Do not invent current events; provide a monitoring framework and clearly state this limitation.";
+
 const prompts = {
-  english: `Create today's advanced C1 English-for-work lesson for a Commercial Excellence and Sales Operations professional in China. Focus on emails, meetings, presentations or cross-functional conversations. Return valid JSON only with keys title and body. body must be safe semantic HTML using only h3, p, b, ul, li and table tags. Include executive phrasing, a word bank, Chinglish corrections, one presentation phrase, and a 2-minute exercise. Do not use markdown fences. Date: ${date}.`,
-  pharmacy: `Create a concise China retail pharmacy and Commercial Excellence learning brief for a Sales Operations professional. Focus on policy monitoring, procurement, pharmacy chains, channel execution, digital health and practical implications for KPI allocation, IMS/Offtake, inventory, pricing and reporting. Do not claim that an event happened today and do not invent news or sources. Clearly label the content as a monitoring and analysis framework. Return valid JSON only with keys title and body. body must be safe semantic HTML using only h3, p, b, ul, li and table tags. Do not use markdown fences. Observation date: ${date}.`
+  english: `Create today's substantial advanced C1 English-for-work lesson for a Commercial Excellence and Sales Operations professional in China. It must be comparable to a full ChatGPT lesson, not a short summary. Focus on emails, meetings, presentations or cross-functional conversations. Return valid JSON only with keys title and body. body must be safe semantic HTML using only h3, p, b, ul, li, table, tr, th and td tags. Include exactly these 8 clearly developed sections: Today's Focus with a Chinese explanation, Executive-ready model, Useful meeting phrases, Cross-functional follow-up, Word bank with at least 6 entries and examples, at least 2 Chinglish corrections, Presentation phrase with usage guidance, and a 2-minute exercise with a suggested answer. Target 900-1400 English words plus concise Chinese explanations. Do not use markdown fences. Date: ${date}.`,
+  pharmacy: `Create a full weekly China retail pharmacy trend and Sales Operations impact report for a Commercial Excellence professional. This must be a substantial report, not a short summary. Use only the source items supplied below for time-sensitive factual claims; never invent events, dates, statistics or sources. Separate confirmed source signals from your analysis. Return valid JSON only with keys title and body. body must be semantic HTML using only h3, p, b, ul, li, table, tr, th, td and a tags. Include 8 developed sections: 1) Executive summary with 3-5 key judgments, 2) Policy and market access, 3) pharmacy chains and channel execution, 4) procurement, pricing and volume-based purchasing, 5) digital health and patient access, 6) implications for IMS, Offtake, Inventory and Sales/Billing, 7) next-week action checklist with owner suggestions, and 8) source list containing clickable links. For each signal state What happened / Why it matters / What to monitor. Target 1800-2800 Chinese characters. If sources are insufficient, say so clearly and use a monitoring framework rather than fabricated news. Do not use markdown fences. Observation date: ${date}.\n\nSOURCE ITEMS:\n${sourceContext}`
 };
 
 const response = await fetch("https://models.github.ai/inference/chat/completions", {
@@ -26,7 +60,7 @@ const response = await fetch("https://models.github.ai/inference/chat/completion
       { role: "user", content: prompts[mode] }
     ],
     temperature: 0.5,
-    max_tokens: 2200
+    max_tokens: 4200
   })
 });
 const path = new URL("../reading-data.json", import.meta.url);
