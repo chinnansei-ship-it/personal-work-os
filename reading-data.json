@@ -2,11 +2,11 @@
   "pharmacy": {
     "title": "中国零售药房与商业卓越周报",
     "meta": "每周一 08:05 自动更新",
-    "body": "<h3>自动更新已准备</h3><p>完成 GitHub 密钥设置后，下期药房简报将自动出现在这里。</p>"
+    "body": "<h3>本周观察框架</h3><p>从政策与准入、集采与价格、连锁药房、渠道执行和数字医疗五个维度识别变化，并连接到 IMS、Offtake、库存及客户绩效。</p><h3>建议关注指标</h3><ul><li>有效覆盖门店与医保门店占比</li><li>Listing、In-stock 与 Order Fulfillment</li><li>价格差异、库存天数与 Offtake 趋势</li></ul><p><b>说明：</b>自动更新将在 GitHub Actions 下一次运行后替换本期内容。</p>"
   },
   "english": {
     "title": "English for Work — Advanced (C1)",
     "meta": "工作日 21:05 自动更新",
-    "body": "<h3>Automatic update is ready</h3><p>After the GitHub secret is configured, the next English practice will appear here automatically.</p>"
+    "body": "<h3>Executive Update</h3><p>Use <b>Status → Driver → Impact → Action</b> to keep a business update concise and decision-oriented.</p><h3>Phrase of the day</h3><p><b>The gap is manageable, but the trajectory needs attention.</b></p><h3>Two-minute practice</h3><p>Summarize one current workstream in four sentences, following the structure above.</p>"
   }
 }
